@@ -1,0 +1,62 @@
+﻿using Microsoft.Owin.Security;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace ClientApp.Controllers
+{
+    public class HomeController : Controller
+    {
+        // GET: Home
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+
+        public ActionResult EdSight()
+        {
+            return new ChallengeResult("EdSight", Url.Action("ExternalLoginCallback", "Home", new { ReturnUrl = "/" }));
+
+        }
+
+        public string EternalLoginCallback()
+        {
+            return "done";
+        }
+
+
+        internal class ChallengeResult : HttpUnauthorizedResult
+        {
+            public ChallengeResult(string provider, string redirectUri)
+                : this(provider, redirectUri, null)
+            {
+            }
+
+            public ChallengeResult(string provider, string redirectUri, string userId)
+            {
+                LoginProvider = provider;
+                RedirectUri = redirectUri;
+                UserId = userId;
+            }
+
+            public string LoginProvider { get; set; }
+            public string RedirectUri { get; set; }
+            public string UserId { get; set; }
+
+            public override void ExecuteResult(ControllerContext context)
+            {
+                var properties = new AuthenticationProperties { RedirectUri = RedirectUri };
+                if (UserId != null)
+                {
+                    properties.Dictionary["test"] = UserId;
+                }
+                context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider);
+            }
+        }
+
+
+    }
+}
